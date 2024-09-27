@@ -129,7 +129,7 @@ public class UmsMemberCouponServiceImpl implements UmsMemberCouponService {
                 //判断是否满足优惠起点
                 //计算购物车商品的总价
                 BigDecimal totalAmount = calcTotalAmount(cartItemList);
-                if(now.before(endTime)&&totalAmount.subtract(minPoint).intValue()>=0){
+                if(now.before(endTime)&&totalAmount.subtract(minPoint).floatValue()>=0){
                     enableList.add(couponHistoryDetail);
                 }else{
                     disableList.add(couponHistoryDetail);
@@ -142,7 +142,7 @@ public class UmsMemberCouponServiceImpl implements UmsMemberCouponService {
                     productCategoryIds.add(categoryRelation.getProductCategoryId());
                 }
                 BigDecimal totalAmount = calcTotalAmountByproductCategoryId(cartItemList,productCategoryIds);
-                if(now.before(endTime)&&totalAmount.intValue()>0&&totalAmount.subtract(minPoint).intValue()>=0){
+                if(now.before(endTime)&&totalAmount.floatValue()>0&&totalAmount.subtract(minPoint).floatValue()>=0){
                     enableList.add(couponHistoryDetail);
                 }else{
                     disableList.add(couponHistoryDetail);
@@ -155,7 +155,7 @@ public class UmsMemberCouponServiceImpl implements UmsMemberCouponService {
                     productIds.add(productRelation.getProductId());
                 }
                 BigDecimal totalAmount = calcTotalAmountByProductId(cartItemList,productIds);
-                if(now.before(endTime)&&totalAmount.intValue()>0&&totalAmount.subtract(minPoint).intValue()>=0){
+                if(now.before(endTime)&&totalAmount.floatValue()>0&&totalAmount.subtract(minPoint).floatValue()>=0){
                     enableList.add(couponHistoryDetail);
                 }else{
                     disableList.add(couponHistoryDetail);
@@ -189,19 +189,18 @@ public class UmsMemberCouponServiceImpl implements UmsMemberCouponService {
             List<Long> couponIds = cpcrList.stream().map(SmsCouponProductCategoryRelation::getCouponId).collect(Collectors.toList());
             allCouponIds.addAll(couponIds);
         }
-        if(CollUtil.isEmpty(allCouponIds)){
-            return new ArrayList<>();
-        }
         //所有优惠券
         SmsCouponExample couponExample = new SmsCouponExample();
         couponExample.createCriteria().andEndTimeGreaterThan(new Date())
                 .andStartTimeLessThan(new Date())
                 .andUseTypeEqualTo(0);
-        couponExample.or(couponExample.createCriteria()
-                .andEndTimeGreaterThan(new Date())
-                .andStartTimeLessThan(new Date())
-                .andUseTypeNotEqualTo(0)
-                .andIdIn(allCouponIds));
+        if(CollUtil.isNotEmpty(allCouponIds)){
+            couponExample.or(couponExample.createCriteria()
+                    .andEndTimeGreaterThan(new Date())
+                    .andStartTimeLessThan(new Date())
+                    .andUseTypeNotEqualTo(0)
+                    .andIdIn(allCouponIds));
+        }
         return couponMapper.selectByExample(couponExample);
     }
 
